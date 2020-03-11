@@ -7,7 +7,7 @@ from time import sleep
 
 # But no one has seen or heard from him since last Wednesday
 today = date.today()
-delta = offset = (today.weekday() + 4) % 7 + 1
+delta = (today.weekday() + 4) % 7 + 1
 lastWednesday = today - timedelta(days=delta)
 
 downloadPath = path.dirname(path.realpath(__file__)) + '/downloads/'
