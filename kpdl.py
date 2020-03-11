@@ -1,4 +1,5 @@
 import requests
+from clint.textui import progress
 from os import path
 from datetime import date, timedelta
 from time import sleep
@@ -20,15 +21,19 @@ while numFailedRequests < 10:
     year = dlDate.strftime('%Y')
     dlUrl = f"http://dread.radionova.no/kringlast/kvegpels/{filename}"
     if path.exists(downloadPath + filename):
-        print(f"Skip download of kvegpels, week {weekNumber}, {year}: {dlUrl}, file already exists")
+        print(f"Skip download of kvegpels week {weekNumber}, {year}: {dlUrl}, file already exists")
     else:
-        print(f"Downloading kvegpels, week {weekNumber}, {year}: {dlUrl}")
-        response = requests.get(dlUrl)
+        print(f"Downloading kvegpels week {weekNumber}, {year}: {dlUrl}")
+        response = requests.get(dlUrl, stream=True)
         if response.status_code == 200:
-           with open(downloadPath + filename, 'wb') as file:
-               file.write(response.content)
+            with open(downloadPath + filename, 'wb') as file:
+                contentLength = int(response.headers.get('content-length'))
+                for chunk in progress.bar(response.iter_content(chunk_size=1024), expected_size=(contentLength / 1024) + 1): 
+                    if chunk:
+                        file.write(chunk)
+                        file.flush()               
         else:
-            print(f"Could not download kvegpels, week {weekNumber}, {year}: {dlUrl}, server returned status {response.status_code}")
+            print(f"Could not download kvegpels week {weekNumber}, {year}: {dlUrl}, server returned status {response.status_code}")
             numFailedRequests += 1
     
     weekDiffs += 1
